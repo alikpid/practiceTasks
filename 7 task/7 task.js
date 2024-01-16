@@ -29,23 +29,12 @@ function getRandomYear(first = 1, last = 2040) {
     return Math.floor(Math.random() * (last - first + 1) + first);
 }
 
-// я не знаю, как это адекватно написать
+// я дебил
 function getSeason(month) {
-    let seasonDictionary = {
-        3: 'весна',
-        4: 'весна',
-        5: 'весна',
-        6: 'лето',
-        7: 'лето',
-        8: 'лето',
-        9: 'осень',
-        10: 'осень',
-        11: 'осень',
-        12: 'зима',
-        1: 'зима',
-        2: 'зима'
-    };
-    return seasonDictionary[month];
+    let seasonNames = ['зима', 'весна', 'лето', 'осень'];
+    let seasonIndex = Math.floor((month % 12) / 3);
+
+    return seasonNames[seasonIndex];
 }
 
 function isLeapYear(year) {
