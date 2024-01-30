@@ -1,46 +1,117 @@
+Vue.component('gen-checkbox', {
+    props: ['field'],
+    template: `
+        <fieldset>
+            <legend class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</legend>
+            <div class="flex items-center" 
+                 v-for="variant in field.attrs.variants"
+                 :key="variant.value">
+                <input :type="field.attrs.type"
+                       :name="field.attrs.name"
+                       :value="variant.value"
+                       :id="variant.value">
+                <label class="ml-2" :for="variant.value">{{variant.label}}</label>
+            </div>
+        </fieldset>
+    `,
+});
+
+Vue.component('gen-radio', {
+    props: ['field'],
+    template: `
+        <fieldset>
+            <legend class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</legend>
+            <div class="flex items-center"
+                 v-for="variant in field.attrs.variants"
+                 :key="variant.value">
+                <input :type="field.attrs.type"
+                       :name="field.attrs.name" 
+                       :value="variant.value" 
+                       :id="variant.value">
+                <label class="ml-2" :for="variant.value">{{variant.label}}</label>
+            </div>
+        </fieldset>
+    `,
+});
+
+Vue.component('gen-select', {
+    props: ['field'],
+    template: `
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
+                {{field.label}}
+            </label>
+            <select class="w-full border border-gray-300 py-2 px-3 rounded-md" 
+                    :name="field.attrs.name" 
+                    :id="field.attrs.name">
+                <option v-for="variant in field.attrs.variants"
+                        :key="variant.value"
+                        :value="variant.value">
+                    {{variant.label}}
+                </option>
+            </select>
+        </div>
+    `,
+});
+
+Vue.component('gen-textarea', {
+    props: ['field'],
+    template: `
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
+                {{field.label}}
+            </label>
+            <input class="w-full border border-gray-300 py-2 px-3 rounded-md"
+                   :type="field.attrs.type" 
+                   :name="field.attrs.name"     
+                   :id="field.attrs.name">
+        </div>
+    `,
+});
+
+Vue.component('gen-text', {
+    props: ['field'],
+    template: `
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
+                {{field.label}}
+            </label>
+            <input class="w-full border border-gray-300 py-2 px-3 rounded-md"  autocomplete="off" 
+                   :type="field.attrs.type" 
+                   :name="field.attrs.name" 
+                   :id="field.attrs.name">
+        </div>
+    `,
+});
+
 Vue.component('generated-form', {
     props: ['formData'],
     template: `
-            <form>
+        <form>
             <div class="max-w-md bg-white p-7 rounded-md shadow-md">
                 <h2 class="text-2xl font-bold mb-4">{{formData.title}}</h2>
                 <p v-show="formData.description" class="mb-4 text-gray-700">{{formData.description}}</p>
-                <div v-for="field in formData.fields" :key="field.attrs.name" class="mb-4">
-                    <template v-if="field.attrs.type === 'checkbox' || field.attrs.type === 'radio'">
-                        <fieldset>
-                            <legend class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</legend>
-                            <div v-for="variant in field.attrs.variants" :key="variant.value" class="flex items-center">
-                                <input :type="field.attrs.type" :name="field.attrs.name" :value="variant.value" :id="variant.value">
-                                <label :for="variant.value" class="ml-2">{{variant.label}}</label>
-                            </div>
-                        </fieldset>
-                    </template>
-                    
-                    <template v-else-if="field.attrs.type === 'select'">
-                        <label :for="field.attrs.name" class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</label>
-                        <select :name="field.attrs.name" class="w-full border border-gray-300 py-2 px-3 rounded-md" :id="field.attrs.name">
-                            <option v-for="variant in field.attrs.variants" :key="variant.value" :value="variant.value">{{variant.label}}</option>
-                        </select>
-                    </template>
-                    
-                    <template v-else>
-                        <label :for="field.attrs.name" class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</label>
-                        <input :type="field.attrs.type" :name="field.attrs.name" class="w-full border border-gray-300 py-2 px-3 rounded-md"
-                               :class="{ 'resize-none': field.attrs.type === 'textarea' }" :id="field.attrs.name" autocomplete="off">
-                    </template>
+                <component v-for="field in formData.fields" :key="field.attrs.name"
+                           :is="getComponentName(field.attrs.type)"
+                           :field="field">
+                </component>
+                
+                <div class="flex justify-end mt-4">
+                    <button v-for="button in formData.buttons" :key="button"
+                            :type="button === 'submit' ? 'submit' : 'reset'"
+                            class="px-4 py-2 rounded-md mr-2"
+                            :class="{'bg-blue-500 text-white': button === 'submit', 'bg-red-500 text-white': button === 'clear'}">
+                        {{button === 'submit' ? 'Отправить' : 'Очистить'}}
+                    </button>
+                </div>
             </div>
-            
-            <div class="flex justify-end mt-4">
-                <button v-for="button in formData.buttons" :key="button" :type="button === 'submit' ? 'submit' : 'reset'"
-                        class="px-4 py-2 rounded-md mr-2"
-                        :class="{'bg-blue-500 text-white': button === 'submit', 'bg-red-500 text-white': button === 'clear'}">
-                {{button === 'submit' ? 'Отправить' : 'Очистить'}}
-                </button>
-            </div>
-            
-        </div>
-        </form>>
-    `
+        </form>
+    `,
+    methods: {
+        getComponentName(type) {
+            return `gen-${type.toLowerCase()}`;
+        },
+    },
 });
 
 new Vue({
