@@ -1,0 +1,5 @@
+.form-list-container.selected {
+    background-color: #4299e1;
+    color: #fff;
+    padding-left: 0.5rem;
+}
