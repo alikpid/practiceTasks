@@ -1,160 +1,182 @@
-Vue.component('gen-checkbox', {
-    props: ['field'],
-    template: `
-        <fieldset>
-            <legend class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</legend>
-            <div class="flex items-center" 
-                 v-for="variant in field.attrs.variants"
-                 :key="variant.value">
-                <input :type="field.attrs.type"
-                       :name="field.attrs.name"
-                       :value="variant.value"
-                       :id="variant.value">
-                <label class="ml-2" :for="variant.value">{{variant.label}}</label>
-            </div>
-        </fieldset>
-    `,
+const forms = [
+    { id: 'form-test-1', title: 'Тест 1' },
+    { id: 'form-test-2', title: 'Тест 2' },
+    { id: 'form-test-3', title: 'Тест 3' },
+];
+
+const formListContainer = document.getElementById('formListContainer');
+
+async function loadFormData(form) {
+    const response = await fetch(`data/${form.id}.json`);
+    const formData = await response.json();
+    renderForm(formData);
+}
+
+function renderForm(formData) {
+    const generatedFormContainer = document.getElementById('formContainer');
+    generatedFormContainer.innerHTML = '';
+
+    const formTitle = document.createElement('h2');
+    formTitle.className = 'text-2xl font-bold mb-4';
+    formTitle.textContent = formData.title;
+
+    const formDescription = document.createElement('p');
+    formDescription.className = 'mb-4 text-gray-700';
+    formDescription.textContent = formData.description || '';
+
+    generatedFormContainer.appendChild(formTitle);
+    generatedFormContainer.appendChild(formDescription);
+
+    formData.fields.forEach(field => {
+        const fieldElement = renderField(field);
+        generatedFormContainer.appendChild(fieldElement);
+    });
+
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'flex justify-end mt-4';
+    formData.buttons.forEach(button => {
+        const buttonElement = renderButton(button);
+        buttonsContainer.appendChild(buttonElement);
+    });
+    generatedFormContainer.appendChild(buttonsContainer);
+}
+
+function renderField(field) {
+    const fieldContainer = document.createElement('div');
+    fieldContainer.classList.add('mb-4');
+
+    switch (field.attrs.type) {
+        case 'checkbox':
+        case 'radio':
+            const fieldsetElement = document.createElement('fieldset');
+            const legendElement = document.createElement('legend');
+            legendElement.className = 'block text-gray-700 text-sm font-bold mb-2';
+            legendElement.textContent = field.label;
+            fieldsetElement.appendChild(legendElement);
+
+            fieldContainer.appendChild(fieldsetElement);
+
+            field.attrs.variants.forEach(variant => {
+                const inputElement = document.createElement('input');
+                inputElement.type = field.attrs.type;
+                inputElement.name = field.attrs.name;
+                inputElement.value = variant.value;
+                inputElement.id = variant.value;
+
+                const labelElement = document.createElement('label');
+                labelElement.className = 'ml-2';
+                labelElement.htmlFor = variant.value;
+                labelElement.textContent = variant.label;
+
+                const variantContainer = document.createElement('div');
+                variantContainer.className = 'flex items-center';
+                variantContainer.appendChild(inputElement);
+                variantContainer.appendChild(labelElement);
+
+                fieldsetElement.appendChild(variantContainer);
+            });
+
+            break
+        case 'select':
+            const labelElement = document.createElement('label');
+            labelElement.className = 'block text-gray-700 text-sm font-bold mb-2';
+            labelElement.htmlFor = field.attrs.name;
+            labelElement.textContent = field.label;
+
+            const selectElement = document.createElement('select');
+            selectElement.className = 'w-full border border-gray-300 py-2 px-3 rounded-md';
+            selectElement.name = field.attrs.name;
+            selectElement.id = field.attrs.name;
+
+            field.attrs.variants.forEach(variant => {
+                const optionElement = document.createElement('option');
+                optionElement.value = variant.value;
+                optionElement.textContent = variant.label;
+                selectElement.appendChild(optionElement);
+            });
+
+            fieldContainer.appendChild(labelElement);
+            fieldContainer.appendChild(selectElement);
+
+            break
+        case 'textarea':
+            const textareaLabelElement = document.createElement('label');
+            textareaLabelElement.className = 'block text-gray-700 text-sm font-bold mb-2';
+            textareaLabelElement.htmlFor = field.attrs.name;
+            textareaLabelElement.textContent = field.label;
+
+            const textareaElement = document.createElement('textarea');
+            textareaElement.className = 'w-full border border-gray-300 py-2 px-3 rounded-md';
+            textareaElement.name = field.attrs.name;
+            textareaElement.id = field.attrs.name;
+
+            fieldContainer.appendChild(textareaLabelElement);
+            fieldContainer.appendChild(textareaElement);
+
+            break
+        case 'text':
+            const inputLabelElement = document.createElement('label');
+            inputLabelElement.className = 'block text-gray-700 text-sm font-bold mb-2';
+            inputLabelElement.htmlFor = field.attrs.name;
+            inputLabelElement.textContent = field.label;
+
+            const inputElement = document.createElement('input');
+            inputElement.className = 'w-full border border-gray-300 py-2 px-3 rounded-md';
+            inputElement.type = field.attrs.type;
+            inputElement.name = field.attrs.name;
+            inputElement.id = field.attrs.name;
+            inputElement.autocomplete = 'off';
+
+            fieldContainer.appendChild(inputLabelElement);
+            fieldContainer.appendChild(inputElement);
+
+            break
+    }
+
+    return fieldContainer;
+}
+
+function renderButton(button) {
+    const type = button === 'submit' ? 'submit' : 'reset';
+    const className = button === 'submit' ? 'bg-blue-500 text-white' : 'bg-red-500 text-white';
+    const buttonText = button === 'submit' ? 'Отправить' : 'Очистить';
+
+    const buttonElement = document.createElement('button');
+    buttonElement.type = type;
+    buttonElement.className = `px-4 py-2 rounded-md mr-2 ${className}`;
+    buttonElement.textContent = buttonText;
+
+    return buttonElement;
+}
+
+function renderFormList(form, index) {
+    const formItemContainer = document.createElement('div');
+
+    const radioInput = document.createElement('input');
+    radioInput.type = 'radio';
+    radioInput.name = 'formSelection';
+    radioInput.id = form.id;
+    radioInput.addEventListener('change', () => loadFormData(form));
+
+    if (index === 0) {
+        radioInput.checked = true;
+    }
+
+    const radioLabel = document.createElement('label');
+    radioLabel.className = 'w-full pl-2';
+    radioLabel.htmlFor = form.id;
+    radioLabel.textContent = form.title;
+
+    formItemContainer.appendChild(radioInput);
+    formItemContainer.appendChild(radioLabel);
+
+    formListContainer.appendChild(formItemContainer);
+}
+
+forms.forEach((form, index) => {
+    renderFormList(form, index);
 });
 
-Vue.component('gen-radio', {
-    props: ['field'],
-    template: `
-        <fieldset>
-            <legend class="block text-gray-700 text-sm font-bold mb-2">{{field.label}}</legend>
-            <div class="flex items-center"
-                 v-for="variant in field.attrs.variants"
-                 :key="variant.value">
-                <input :type="field.attrs.type"
-                       :name="field.attrs.name" 
-                       :value="variant.value" 
-                       :id="variant.value">
-                <label class="ml-2" :for="variant.value">{{variant.label}}</label>
-            </div>
-        </fieldset>
-    `,
-});
-
-Vue.component('gen-select', {
-    props: ['field'],
-    template: `
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
-                {{field.label}}
-            </label>
-            <select class="w-full border border-gray-300 py-2 px-3 rounded-md" 
-                    :name="field.attrs.name" 
-                    :id="field.attrs.name">
-                <option v-for="variant in field.attrs.variants"
-                        :key="variant.value"
-                        :value="variant.value">
-                    {{variant.label}}
-                </option>
-            </select>
-        </div>
-    `,
-});
-
-Vue.component('gen-textarea', {
-    props: ['field'],
-    template: `
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
-                {{field.label}}
-            </label>
-            <input class="w-full border border-gray-300 py-2 px-3 rounded-md"
-                   :type="field.attrs.type" 
-                   :name="field.attrs.name"     
-                   :id="field.attrs.name">
-        </div>
-    `,
-});
-
-Vue.component('gen-text', {
-    props: ['field'],
-    template: `
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2" :for="field.attrs.name">
-                {{field.label}}
-            </label>
-            <input class="w-full border border-gray-300 py-2 px-3 rounded-md"  autocomplete="off" 
-                   :type="field.attrs.type" 
-                   :name="field.attrs.name" 
-                   :id="field.attrs.name">
-        </div>
-    `,
-});
-
-Vue.component('generated-form', {
-    props: ['formData'],
-    template: `
-        <form>
-            <div class="max-w-md bg-white p-7 rounded-md shadow-md">
-                <h2 class="text-2xl font-bold mb-4">{{formData.title}}</h2>
-                <p v-show="formData.description" class="mb-4 text-gray-700">{{formData.description}}</p>
-                <component v-for="field in formData.fields" :key="field.attrs.name"
-                           :is="getComponentName(field.attrs.type)"
-                           :field="field">
-                </component>
-                
-                <div class="flex justify-end mt-4">
-                    <button v-for="button in formData.buttons" :key="button"
-                            :type="button === 'submit' ? 'submit' : 'reset'"
-                            class="px-4 py-2 rounded-md mr-2"
-                            :class="{'bg-blue-500 text-white': button === 'submit', 'bg-red-500 text-white': button === 'clear'}">
-                        {{button === 'submit' ? 'Отправить' : 'Очистить'}}
-                    </button>
-                </div>
-            </div>
-        </form>
-    `,
-    methods: {
-        getComponentName(type) {
-            return `gen-${type.toLowerCase()}`;
-        },
-    },
-});
-
-new Vue({
-    el: '#app',
-    data: {
-        selectedForm: null,
-        formData: {},
-        forms: [
-            {id: 'form-test-1', title: 'Тест 1'},
-            {id: 'form-test-2', title: 'Тест 2'},
-            {id: 'form-test-3', title: 'Тест 3'},
-        ],
-    },
-    methods: {
-        async loadFormData(form) {
-            const response = await fetch(`data/${form.id}.json`);
-            this.formData = await response.json();
-        },
-        selectForm(form) {
-            this.selectedForm = form;
-            this.loadFormData(form);
-        },
-    },
-    mounted() {
-        this.selectedForm = this.forms[0];
-        this.loadFormData(this.selectedForm);
-    },
-    template: `
-         <div class="flex p-7">
-            <div class="form-list w-1/5 rounded-md shadow-md py-7 pl-7">
-                <h1 class="text-xl font-bold mb-2">Тестики:</h1>
-                    <div class="form-list-container"
-                         :class="{ selected: selectedForm === form }"
-                         v-for="form in forms"
-                         :key="form.id"
-                         @click="selectForm(form)"
-                         @keyup.enter.prevent="selectForm(form)"
-                         tabindex="0">
-                        <p :for="form.id" class="block cursor-pointer w-full py-2">{{ form.title }}</p>
-                    </div>
-            </div>
-
-            <generated-form :form-data="formData"></generated-form>
-        </div>
-    `,
-});
+if (forms.length > 0) {
+    loadFormData(forms[0]);
+}
